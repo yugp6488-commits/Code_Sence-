@@ -1,8 +1,8 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm run typecheck:libs && cd frontend/code-review-agent && pnpm run build",
+  "buildCommand": "pnpm --filter @workspace/code-review-agent run build",
   "outputDirectory": "frontend/code-review-agent/dist/public",
-  "installCommand": "npm i -g pnpm && pnpm install",
-  "framework": "vite",
+  "installCommand": "pnpm install",
+  "framework": null,
   "rewrites": [
     {
       "source": "/api/:path*",
