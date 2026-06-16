@@ -1,0 +1,59 @@
+# Node modules and dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Development tools
+.vscode
+.idea
+.DS_Store
+*.swp
+*.swo
+*~
+.env.local
+.env.*.local
+
+# Build artifacts and caches
+dist
+build
+.next
+out
+.cache
+.turbo
+
+# Test coverage
+coverage
+.nyc_output
+
+# Environment files (except .env.example if it exists)
+.env
+.env.*
+!.env.example
+
+# OS files
+Thumbs.db
+*.log
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Documentation
+docs
+README.md
+
+# Development files
+*.md
+.replitignore
+replit.md
+SETUP-DATABASE.bat
+START-API.bat
+START-FRONTEND.bat

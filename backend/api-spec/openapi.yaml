@@ -1,0 +1,848 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Code Review Agent API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: projects
+    description: Project management with coding conventions
+  - name: reviews
+    description: Code review sessions
+  - name: teams
+    description: Team and organization management
+  - name: memory
+    description: Agent memory and learning stats
+  - name: dashboard
+    description: Dashboard and summary data
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /teams:
+    get:
+      operationId: listTeams
+      tags: [teams]
+      summary: List all teams
+      responses:
+        "200":
+          description: List of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+    post:
+      operationId: createTeam
+      tags: [teams]
+      summary: Create a new team
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamInput"
+      responses:
+        "201":
+          description: Created team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+
+  /teams/{id}:
+    get:
+      operationId: getTeam
+      tags: [teams]
+      summary: Get a team by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Team details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Team"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteTeam
+      tags: [teams]
+      summary: Delete a team
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List all projects
+      parameters:
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectInput"
+      responses:
+        "201":
+          description: Created project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    patch:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectUpdate"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /reviews:
+    get:
+      operationId: listReviews
+      tags: [reviews]
+      summary: List code reviews
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: language
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Submit code for review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "201":
+          description: Created review with AI suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewWithSuggestions"
+
+  /reviews/{id}:
+    get:
+      operationId: getReview
+      tags: [reviews]
+      summary: Get a review with its suggestions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Review with suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewWithSuggestions"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteReview
+      tags: [reviews]
+      summary: Delete a review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /reviews/{id}/feedback:
+    post:
+      operationId: submitFeedback
+      tags: [reviews]
+      summary: Submit feedback on a suggestion (accept or reject)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackInput"
+      responses:
+        "200":
+          description: Updated suggestion with feedback
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suggestion"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /memory/stats:
+    get:
+      operationId: getMemoryStats
+      tags: [memory]
+      summary: Get agent memory and learning statistics
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Memory and learning stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemoryStats"
+
+  /memory/patterns:
+    get:
+      operationId: listMemoryPatterns
+      tags: [memory]
+      summary: List learned coding patterns and conventions
+      parameters:
+        - name: projectId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: language
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of learned patterns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MemoryPattern"
+
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent review activity feed
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recent activity items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        reviewCount:
+          type: integer
+        projectCount:
+          type: integer
+      required:
+        - id
+        - name
+        - createdAt
+        - reviewCount
+        - projectCount
+
+    TeamInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+      required:
+        - name
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        teamId:
+          type: ["integer", "null"]
+        teamName:
+          type: ["string", "null"]
+        languages:
+          type: array
+          items:
+            type: string
+        conventions:
+          type: string
+        reviewCount:
+          type: integer
+        acceptanceRate:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - languages
+        - conventions
+        - reviewCount
+        - acceptanceRate
+        - createdAt
+
+    ProjectInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        teamId:
+          type: integer
+        languages:
+          type: array
+          items:
+            type: string
+        conventions:
+          type: string
+      required:
+        - name
+        - languages
+        - conventions
+
+    ProjectUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        teamId:
+          type: integer
+        languages:
+          type: array
+          items:
+            type: string
+        conventions:
+          type: string
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: ["integer", "null"]
+        projectName:
+          type: ["string", "null"]
+        title:
+          type: string
+        language:
+          type: string
+        status:
+          type: string
+        suggestionCount:
+          type: integer
+        acceptedCount:
+          type: integer
+        rejectedCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - language
+        - status
+        - suggestionCount
+        - acceptedCount
+        - rejectedCount
+        - createdAt
+
+    ReviewInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        code:
+          type: string
+        language:
+          type: string
+        projectId:
+          type: integer
+        context:
+          type: string
+      required:
+        - title
+        - code
+        - language
+
+    ReviewWithSuggestions:
+      type: object
+      properties:
+        id:
+          type: integer
+        projectId:
+          type: ["integer", "null"]
+        projectName:
+          type: ["string", "null"]
+        title:
+          type: string
+        code:
+          type: string
+        language:
+          type: string
+        status:
+          type: string
+        suggestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Suggestion"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - code
+        - language
+        - status
+        - suggestions
+        - createdAt
+
+    Suggestion:
+      type: object
+      properties:
+        id:
+          type: integer
+        reviewId:
+          type: integer
+        category:
+          type: string
+        severity:
+          type: string
+        lineStart:
+          type: ["integer", "null"]
+        lineEnd:
+          type: ["integer", "null"]
+        message:
+          type: string
+        suggestedCode:
+          type: ["string", "null"]
+        explanation:
+          type: string
+        feedback:
+          type: ["string", "null"]
+        feedbackNote:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - reviewId
+        - category
+        - severity
+        - message
+        - explanation
+        - createdAt
+
+    FeedbackInput:
+      type: object
+      properties:
+        suggestionId:
+          type: integer
+        feedback:
+          type: string
+          enum: [accepted, rejected]
+        note:
+          type: string
+      required:
+        - suggestionId
+        - feedback
+
+    MemoryStats:
+      type: object
+      properties:
+        totalReviews:
+          type: integer
+        totalSuggestions:
+          type: integer
+        acceptanceRate:
+          type: number
+        topIssues:
+          type: array
+          items:
+            $ref: "#/components/schemas/IssueCount"
+        languageBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/LanguageCount"
+        learningProgress:
+          type: number
+        patternsLearned:
+          type: integer
+      required:
+        - totalReviews
+        - totalSuggestions
+        - acceptanceRate
+        - topIssues
+        - languageBreakdown
+        - learningProgress
+        - patternsLearned
+
+    IssueCount:
+      type: object
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
+        acceptanceRate:
+          type: number
+      required:
+        - category
+        - count
+        - acceptanceRate
+
+    LanguageCount:
+      type: object
+      properties:
+        language:
+          type: string
+        count:
+          type: integer
+      required:
+        - language
+        - count
+
+    MemoryPattern:
+      type: object
+      properties:
+        id:
+          type: integer
+        pattern:
+          type: string
+        category:
+          type: string
+        language:
+          type: ["string", "null"]
+        projectId:
+          type: ["integer", "null"]
+        confidence:
+          type: number
+        occurrences:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - pattern
+        - category
+        - confidence
+        - occurrences
+        - createdAt
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalReviews:
+          type: integer
+        totalProjects:
+          type: integer
+        totalTeams:
+          type: integer
+        totalSuggestions:
+          type: integer
+        acceptanceRate:
+          type: number
+        reviewsThisWeek:
+          type: integer
+        topLanguages:
+          type: array
+          items:
+            $ref: "#/components/schemas/LanguageCount"
+        severityBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeverityCount"
+      required:
+        - totalReviews
+        - totalProjects
+        - totalTeams
+        - totalSuggestions
+        - acceptanceRate
+        - reviewsThisWeek
+        - topLanguages
+        - severityBreakdown
+
+    SeverityCount:
+      type: object
+      properties:
+        severity:
+          type: string
+        count:
+          type: integer
+      required:
+        - severity
+        - count
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        reviewId:
+          type: integer
+        reviewTitle:
+          type: string
+        language:
+          type: string
+        projectName:
+          type: ["string", "null"]
+        details:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - reviewId
+        - reviewTitle
+        - language
+        - details
+        - createdAt
