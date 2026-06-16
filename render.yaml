@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: codesense-api
+    runtime: node
+    buildCommand: pnpm install && pnpm run typecheck:libs && cd backend/api-server && pnpm run build
+    startCommand: cd backend/api-server && pnpm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
